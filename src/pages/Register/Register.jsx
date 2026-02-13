@@ -4,34 +4,50 @@ import registerLottie from '../../assets/lotties/Register.json'
 import { AuthContext } from '../../contexts/AuthContext/AuthContext';
 
 const Register = () => {
-  const{createUser} = use(AuthContext);
+  const { createUser } = use(AuthContext);
 
-    const handleRegister = e => {
-        e.preventDefault();
-        const form = e.target;
-        const email = form.email.value;
-        const password = form.password.value;
-        console.log(email, password)
+  const handleRegister = e => {
+    e.preventDefault();
+    const form = e.target;
+    const email = form.email.value;
+    const password = form.password.value;
+    console.log(email, password)
 
-        createUser(email,password)
-        .then(result=>{
-            console.log(result.user);
-             
+    createUser(email, password)
+      .then(result => {
+        console.log(result.user);
+
+        const savedUser = {
+          firebaseUid: result.user.uid,
+          email: result.user.email,
+          name: "No Name",         
+          role: "student"          
+        };
+
+        fetch("http://localhost:8000/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(savedUser)
         })
-        .catch(error=>{
-            console.log(error);
-        })
-    }
-    return (
-         <div className="hero bg-base-200 min-h-screen">
-        <div className="hero-content flex-col lg:flex-row-reverse">
-          <div className="text-center lg:text-left">
-            <Lottie style={{width: '200px'}} animationData={registerLottie}  loop={true} ></Lottie>
-          </div>
-          <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-            <div className="card-body">
+          .then(res => res.json())
+          .then(data => console.log("user saved to db", data))
+          .catch(err => console.log("db save error", err));
+      })
+
+      .catch(error => {
+        console.log(error);
+      })
+  }
+  return (
+    <div className="hero bg-base-200 min-h-screen">
+      <div className="hero-content flex-col lg:flex-row-reverse">
+        <div className="text-center lg:text-left">
+          <Lottie style={{ width: '200px' }} animationData={registerLottie} loop={true} ></Lottie>
+        </div>
+        <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+          <div className="card-body">
             <h1 className="text-5xl font-bold">Register now!</h1>
-              <form onSubmit={handleRegister}>
+            <form onSubmit={handleRegister}>
               <fieldset className="fieldset">
                 <label className="label">Email</label>
                 <input type="email" name="email" className="input" placeholder="Email" />
@@ -41,13 +57,13 @@ const Register = () => {
                 <button className="btn btn-neutral mt-4">Register</button>
               </fieldset>
 
-              </form>
-               
-            </div>
+            </form>
+
           </div>
         </div>
       </div>
-    );
+    </div>
+  );
 };
 
 export default Register;

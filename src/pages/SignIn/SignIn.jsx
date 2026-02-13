@@ -1,10 +1,16 @@
 import React, { use } from 'react';
-import SignInLottie from  '../../assets/lotties/Login.json';
+import SignInLottie from '../../assets/lotties/Login.json';
 import Lottie from 'lottie-react';
 import { AuthContext } from '../../contexts/AuthContext/AuthContext';
+import { useNavigate, useLocation } from 'react-router';
+
+
 
 const SignIn = () => {
-    const {signInUser} = use(AuthContext);
+    const { signInUser } = use(AuthContext);
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const handleSignIn = e => {
         e.preventDefault();
         const form = e.target;
@@ -12,14 +18,26 @@ const SignIn = () => {
         const password = form.password.value;
         console.log(email, password)
 
-        // sign in user
         signInUser(email, password)
-            .then(result => {
-                console.log(result.user)
+            .then(async (result) => {
+                console.log(result.user);
+                const from = location.state || "/";
+
+                try {
+                    const res = await fetch(`http://localhost:8000/users/${result.user.uid}`);
+                    const data = await res.json();
+
+                    if (data.role === "supervisor") {
+                        navigate("/dashboard/supervisor", { replace: true });
+                    } else {
+                        navigate("/dashboard/student", { replace: true });
+                    }
+                } catch (err) {
+                    console.log(err);
+                    navigate(from, { replace: true });
+                }
             })
-            .catch(error => {
-                console.log(error)
-            })
+
     }
     return (
         <div className="hero bg-base-200 min-h-screen">

@@ -3,7 +3,9 @@ import { Links, NavLink } from 'react-router';
 import { AuthContext } from '../../contexts/AuthContext/AuthContext';
 
 const NavBar = () => {
-    const {user, signOutUser} = use(AuthContext);
+    const {user, signOutUser,role} = use(AuthContext);
+    console.log("role from context:", role);
+
     
      const handleSignOut = () =>{
         signOutUser()
