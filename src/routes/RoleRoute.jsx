@@ -9,7 +9,7 @@ const RoleRoute = ({ children, allowed }) => {
   const { user, loading, role } = use(AuthContext);
   const location = useLocation();
   console.log("RoleRoute:", { user, role, allowed });
-  console.log("now its here");
+ 
   
 
 

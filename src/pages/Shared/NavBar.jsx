@@ -3,18 +3,18 @@ import { Links, NavLink } from 'react-router';
 import { AuthContext } from '../../contexts/AuthContext/AuthContext';
 
 const NavBar = () => {
-    const {user, signOutUser,role} = use(AuthContext);
+    const { user, role, signOutUser } = use(AuthContext);
     console.log("role from context:", role);
 
-    
-     const handleSignOut = () =>{
+
+    const handleSignOut = () => {
         signOutUser()
-        .then(() =>{
-            console.log('signed out user')
-        })
-        .catch(error =>{
-            console.log(error)
-        })
+            .then(() => {
+                console.log('signed out user')
+            })
+            .catch(error => {
+                console.log(error)
+            })
     }
     const links = <>
         <li><NavLink to="/">Home</NavLink></li>
@@ -41,12 +41,25 @@ const NavBar = () => {
                 </ul>
             </div>
             <div className="navbar-end">
-               {
-                    user ? <button onClick={handleSignOut} className='btn'>Sign Out</button> : 
-                    <>
-                    <NavLink className="btn" to="/register">Register</NavLink>
-                    <NavLink className="btn" to="/signIn">SignIn</NavLink>
-                    </>
+                {
+                    user ? (
+                        <>
+                            {role === "student" && (
+                                <NavLink className="btn" to="/dashboard/student">Dashboard</NavLink>
+                            )}
+
+                            {role === "supervisor" && (
+                                <NavLink className="btn" to="/dashboard/supervisor">Dashboard</NavLink>
+                            )}
+
+                            <button onClick={handleSignOut} className="btn">Sign Out</button>
+                        </>
+                    ) : (
+                        <>
+                            <NavLink className="btn" to="/register">Register</NavLink>
+                            <NavLink className="btn" to="/signIn">SignIn</NavLink>
+                        </>
+                    )
                 }
             </div>
         </div>

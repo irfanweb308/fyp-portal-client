@@ -5,10 +5,12 @@ import Register from "../pages/Register/Register";
 import SignIn from "../pages/SignIn/SignIn";
 import BrowseProjects from "../pages/Projects/BrowseProjects";
 import Profile from "../pages/Profile/Profile";
- 
+
 import StudentDashboard from "../pages/Dashboard/StudentDashboard";
 import SupervisorDashboard from "../pages/Dashboard/SupervisorDashboard";
 import RoleRoute from "../routes/RoleRoute";
+import ProjectDetails from "../pages/Projects/ProjectDetails";
+import AddProject from "../pages/Projects/AddProject";
 
 
 const router = createBrowserRouter([
@@ -37,18 +39,29 @@ const router = createBrowserRouter([
         Component: Profile
       },
       {
-        path:"dashboard/student",
+        path: "projects/:id",
+        Component: ProjectDetails
+      },
+      {
+        path: "dashboard/student",
         element: <RoleRoute allowed={["student"]}>
           <StudentDashboard />
         </RoleRoute>
       },
       {
-        path:"dashboard/supervisor",
-        element:<RoleRoute allowed={["supervisor"]}>
+        path: "dashboard/supervisor",
+        element: <RoleRoute allowed={["supervisor"]}>
           <SupervisorDashboard />
         </RoleRoute>
-      }
-       
+      },
+      {
+        path: "projects/add",
+        element: <RoleRoute allowed={["supervisor"]}>
+          <AddProject />
+        </RoleRoute>
+      },
+
+
 
 
     ]
