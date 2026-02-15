@@ -38,13 +38,12 @@ const SupervisorDashboard = () => {
         loadApplications();
     }, [user?.uid]);
 
-    const updateStatus = async (appId, status) => {
+    const updateStatus = async (appId, status, reason = "") => {
         try {
             const res = await fetch(`http://localhost:8000/applications/${appId}`, {
-
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status })
+                body: JSON.stringify({ status, reason })
             });
 
             const data = await res.json();
@@ -54,13 +53,13 @@ const SupervisorDashboard = () => {
                 return;
             }
 
-            // refresh list
             loadApplications();
         } catch (err) {
             console.log(err);
             alert("Server error");
         }
     };
+
 
     const badgeClass = (status) => {
         if (status === "accepted") return "badge badge-success";
@@ -86,6 +85,10 @@ const SupervisorDashboard = () => {
                 <Link to="/projects/add" className="btn btn-sm btn-primary mb-4">
                     Add Project
                 </Link>
+                <Link to="/projects/mine" className="btn btn-sm btn-outline mb-4 ml-2">
+                    My Posts
+                </Link>
+
 
 
                 {loading && <span className="loading loading-ring loading-lg"></span>}
@@ -100,7 +103,10 @@ const SupervisorDashboard = () => {
                             <thead>
                                 <tr>
                                     <th>Project</th>
-                                    <th>Student ID</th>
+                                    <th>Student ID/Name</th>
+                                    <th>Faculty</th>
+                                    <th>Year</th>
+                                    <th>Semester</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -110,15 +116,27 @@ const SupervisorDashboard = () => {
                                 {apps.map((a) => (
                                     <tr key={a._id}>
                                         <td>
-                                            {/* show project title if backend provides it */}
                                             <div className="font-medium">
                                                 {a.projectTitle || "(title not available)"}
                                             </div>
-                                            
                                         </td>
 
-                                        <td>{a.studentId || "-"}</td>
+                                        <td>
+                                            <div className="font-semibold">
+                                                {a.studentName || "No Name"}
+                                            </div>
+                                            <div className="text-sm opacity-70">
+                                                ID: {a.studentId || "-"}
+                                            </div>
+                                        </td>
 
+
+
+                                        <td>{a.studentFaculty || "-"}</td>
+
+                                        <td>{a.studentAcademicYear || "-"}</td>
+
+                                        <td>{a.studentCurrentSemester || "-"}</td>
 
                                         <td>
                                             <span className={badgeClass(a.status)}>
@@ -137,11 +155,19 @@ const SupervisorDashboard = () => {
 
                                             <button
                                                 className="btn btn-xs btn-error"
-                                                onClick={() => updateStatus(a._id, "rejected")}
+                                                onClick={() => {
+                                                    const reason = prompt("Reason for rejection:");
+                                                    if (!reason || !reason.trim()) {
+                                                        alert("Rejection reason is required.");
+                                                        return;
+                                                    }
+                                                    updateStatus(a._id, "rejected", reason);
+                                                }}
                                                 disabled={a.status === "rejected"}
                                             >
                                                 Reject
                                             </button>
+
 
                                             <button
                                                 className="btn btn-xs"
@@ -152,6 +178,7 @@ const SupervisorDashboard = () => {
                                             </button>
                                         </td>
                                     </tr>
+
                                 ))}
                             </tbody>
                         </table>

@@ -11,6 +11,8 @@ import SupervisorDashboard from "../pages/Dashboard/SupervisorDashboard";
 import RoleRoute from "../routes/RoleRoute";
 import ProjectDetails from "../pages/Projects/ProjectDetails";
 import AddProject from "../pages/Projects/AddProject";
+import MyPosts from "../pages/Projects/MyPosts";
+import EditProject from "../pages/Projects/EditProject";
 
 
 const router = createBrowserRouter([
@@ -58,6 +60,18 @@ const router = createBrowserRouter([
         path: "projects/add",
         element: <RoleRoute allowed={["supervisor"]}>
           <AddProject />
+        </RoleRoute>
+      },
+      {
+        path: "projects/mine",
+        element: <RoleRoute allowed={["supervisor"]}>
+          <MyPosts />
+        </RoleRoute>
+      },
+      {
+        path: "projects/edit/:id",
+        element: <RoleRoute allowed={["supervisor"]}>
+          <EditProject />
         </RoleRoute>
       },
 

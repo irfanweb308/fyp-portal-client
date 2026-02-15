@@ -35,6 +35,7 @@ const BrowseProjects = () => {
 
     const handleSearch = (e) => {
         e.preventDefault();
+         
         loadProjects(search);
     };
 
@@ -52,7 +53,8 @@ const BrowseProjects = () => {
         const applicationData = {
             studentUid: user.uid,
             projectId: project._id,
-            supervisorUid: project.supervisorUid
+            supervisorUid: project.supervisorUid,
+            projectTitle: project.title
         };
 
         try {
@@ -100,14 +102,27 @@ const BrowseProjects = () => {
                 {projects.map((p) => (
                     <div key={p._id} className="card bg-base-100 shadow p-4">
                         <h2 className="text-xl font-semibold">{p.title}</h2>
+
                         <p className="text-sm opacity-80 mt-2">{p.description}</p>
+                        <div className="mt-2 flex gap-2">
+                            <span className="badge badge-outline">Status: {p.status}</span>
+
+                            {p.isBooked && (
+                                <span className="badge badge-error">Booked</span>
+                            )}
+                        </div>
                         <div className="mt-4 gap-2 flex">
                             <Link to={`/projects/${p._id}`} className="btn btn-sm btn-outline">
                                 View Details
                             </Link>
-                            <button className="btn btn-sm btn-primary" onClick={() => handleApply(p)}>
-                                Apply
+                            <button
+                                className="btn btn-sm btn-primary"
+                                onClick={() => handleApply(p)}
+                                disabled={p.isBooked}
+                            >
+                                {p.isBooked ? "Booked" : "Apply"}
                             </button>
+
                         </div>
                     </div>
                 ))}

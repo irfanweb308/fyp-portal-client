@@ -15,7 +15,7 @@ const StudentDashboard = () => {
             try {
                 const res = await fetch(
                     `http://localhost:8000/applications?studentUid=${user.uid}`
-                    
+
                 );
                 const data = await res.json();
                 setApps(Array.isArray(data) ? data : []);
@@ -63,22 +63,25 @@ const StudentDashboard = () => {
                             <tbody>
                                 {apps.map((a) => (
                                     <tr key={a._id}>
-                                        <td>{a.project?.title || "Unknown Project"}</td>
-
+                                        <td>{a.projectTitle || "Unknown Project"}</td>
                                         <td>
                                             <span className={badgeClass(a.status)}>
                                                 {a.status || "pending"}
                                             </span>
                                         </td>
 
-                                        <td>
-                                            <Link
-                                                to={`/projects/${a.projectId}`}
-                                                className="btn btn-xs btn-outline"
-                                            >
+                                        <td className="space-y-1">
+                                            <Link to={`/projects/${a.projectId}`} className="btn btn-xs btn-outline">
                                                 View
                                             </Link>
+
+                                            {a.status === "rejected" && a.rejectionReason && (
+                                                <div className="text-xs text-error">
+                                                    Reason: {a.rejectionReason}
+                                                </div>
+                                            )}
                                         </td>
+
                                     </tr>
                                 ))}
                             </tbody>
