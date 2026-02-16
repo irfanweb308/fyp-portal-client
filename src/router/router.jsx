@@ -13,6 +13,10 @@ import ProjectDetails from "../pages/Projects/ProjectDetails";
 import AddProject from "../pages/Projects/AddProject";
 import MyPosts from "../pages/Projects/MyPosts";
 import EditProject from "../pages/Projects/EditProject";
+import SendProposal from "../pages/Applications/SendProposal";
+import ApplicationDetails from "../pages/Applications/ApplicationDetails";
+import CompletedProjects from "../pages/CompletedProjects/CompletedProjects";
+import EditProposal from "../pages/Proposals/EditProposal";
 
 
 const router = createBrowserRouter([
@@ -74,6 +78,35 @@ const router = createBrowserRouter([
           <EditProject />
         </RoleRoute>
       },
+      {
+        path: "applications/proposal",
+        element: <RoleRoute allowed={["student"]}>
+          <SendProposal />
+        </RoleRoute>
+      },
+      {
+        path: "applications/:id",
+        element: <RoleRoute allowed={["student", "supervisor"]}>
+          <ApplicationDetails />
+        </RoleRoute>
+      },
+      {
+        path: "dashboard/supervisor/completed-projects",
+        element: (
+          <RoleRoute allowed={["supervisor"]}>
+            <CompletedProjects />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "applications/:id/edit",
+        element: <RoleRoute allowed={["student"]}>
+          <EditProposal />
+        </RoleRoute>
+      }
+
+
+
 
 
 

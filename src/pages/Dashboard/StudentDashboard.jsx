@@ -42,6 +42,10 @@ const StudentDashboard = () => {
 
             <div className="card bg-base-100 shadow p-4">
                 <h2 className="text-xl font-semibold mb-4">My Applications</h2>
+                <Link to="/applications/proposal" className="btn btn-sm btn-primary mb-4">
+                    Send Proposal
+                </Link>
+
 
                 {loading && <span className="loading loading-ring loading-lg"></span>}
 
@@ -71,9 +75,15 @@ const StudentDashboard = () => {
                                         </td>
 
                                         <td className="space-y-1">
-                                            <Link to={`/projects/${a.projectId}`} className="btn btn-xs btn-outline">
-                                                View
-                                            </Link>
+                                            {a.projectId ? (
+                                                <Link to={`/projects/${a.projectId}`} className="btn btn-xs btn-outline">
+                                                    View Project
+                                                </Link>
+                                            ) : (
+                                                <Link to={`/applications/${a._id}`} className="btn btn-xs btn-outline">
+                                                    View Proposal
+                                                </Link>
+                                            )}
 
                                             {a.status === "rejected" && a.rejectionReason && (
                                                 <div className="text-xs text-error">
@@ -81,6 +91,7 @@ const StudentDashboard = () => {
                                                 </div>
                                             )}
                                         </td>
+
 
                                     </tr>
                                 ))}

@@ -88,6 +88,12 @@ const SupervisorDashboard = () => {
                 <Link to="/projects/mine" className="btn btn-sm btn-outline mb-4 ml-2">
                     My Posts
                 </Link>
+                <Link to="/dashboard/completed-projects">
+                    <button style={{ padding: "10px 14px", marginTop: 10 }}>
+                        Check Completed Projects
+                    </button>
+                </Link>
+
 
 
 
@@ -145,6 +151,11 @@ const SupervisorDashboard = () => {
                                         </td>
 
                                         <td className="flex gap-2">
+                                            <Link to={`/applications/${a._id}`} className="btn btn-xs btn-outline">
+                                                View
+                                            </Link>
+                                            <div className="divider divider-horizontal">
+                                            </div>
                                             <button
                                                 className="btn btn-xs btn-success"
                                                 onClick={() => updateStatus(a._id, "accepted")}

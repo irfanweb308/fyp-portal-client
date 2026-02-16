@@ -41,6 +41,8 @@ const AddProject = () => {
         };
 
         setLoading(true);
+
+        
         try {
             const res = await fetch("http://localhost:8000/projects", {
                 method: "POST",
