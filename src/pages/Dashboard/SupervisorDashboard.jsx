@@ -8,6 +8,10 @@ const SupervisorDashboard = () => {
     const [apps, setApps] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // ✅ NEW: My students state
+    const [myStudents, setMyStudents] = useState([]);
+    const [loadingStudents, setLoadingStudents] = useState(true);
+
     const loadApplications = async () => {
         if (!user?.uid) return;
 
@@ -38,12 +42,34 @@ const SupervisorDashboard = () => {
         loadApplications();
     }, [user?.uid]);
 
+    // ✅ NEW: Load my students
+    useEffect(() => {
+        const loadMyStudents = async () => {
+            try {
+                if (!user?.uid) return;
+
+                setLoadingStudents(true);
+                const res = await fetch(`http://localhost:8000/supervisors/${user.uid}/students`);
+                const data = await res.json();
+
+                setMyStudents(Array.isArray(data) ? data : []);
+            } catch (e) {
+                console.log(e);
+                setMyStudents([]);
+            } finally {
+                setLoadingStudents(false);
+            }
+        };
+
+        loadMyStudents();
+    }, [user?.uid]);
+
     const updateStatus = async (appId, status, reason = "") => {
         try {
             const res = await fetch(`http://localhost:8000/applications/${appId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status, reason })
+                body: JSON.stringify({ status, reason }),
             });
 
             const data = await res.json();
@@ -60,14 +86,7 @@ const SupervisorDashboard = () => {
         }
     };
 
-
-    const badgeClass = (status) => {
-        if (status === "accepted") return "badge badge-success";
-        if (status === "rejected") return "badge badge-error";
-        return "badge badge-warning"; // pending
-    };
-
-    // optional: block non-supervisor
+    // Simple supervisor-only guard
     if (role && role !== "supervisor") {
         return (
             <div className="p-6">
@@ -80,41 +99,69 @@ const SupervisorDashboard = () => {
         <div className="p-6">
             <h1 className="text-3xl font-bold mb-6">Supervisor Dashboard</h1>
 
-            <div className="card bg-base-100 shadow p-4">
-                <h2 className="text-xl font-semibold mb-4">Student Applications</h2>
-                <Link to="/projects/add" className="btn btn-sm btn-primary mb-4">
-                    Add Project
-                </Link>
-                <Link to="/projects/mine" className="btn btn-sm btn-outline mb-4 ml-2">
-                    My Posts
-                </Link>
-                <Link to="/dashboard/completed-projects">
-                    <button style={{ padding: "10px 14px", marginTop: 10 }}>
-                        Check Completed Projects
-                    </button>
-                </Link>
+            {/* ✅ NEW: My Students Section */}
+            <div className="card bg-base-100 shadow p-4 mb-6">
+                <h2 className="text-xl font-semibold mb-3">My Students</h2>
 
+                {loadingStudents && <span className="loading loading-ring loading-lg"></span>}
 
-
-
-                {loading && <span className="loading loading-ring loading-lg"></span>}
-
-                {!loading && apps.length === 0 && (
-                    <p className="opacity-80">No applications yet.</p>
+                {!loadingStudents && myStudents.length === 0 && (
+                    <p>No students assigned to you yet.</p>
                 )}
 
-                {!loading && apps.length > 0 && (
+                {!loadingStudents && myStudents.length > 0 && (
                     <div className="overflow-x-auto">
                         <table className="table">
                             <thead>
                                 <tr>
+                                    <th>Name</th>
+                                    <th>User ID</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {myStudents.map((s) => (
+                                    <tr key={s.firebaseUid}>
+                                        <td>{s.name || "—"}</td>
+                                        <td>{s.userId || "—"}</td>
+                                        <td>{s.email || "—"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            <div className="card bg-base-100 shadow p-4">
+                <div className="flex flex-wrap gap-2 mb-4">
+                    <Link to="/projects/add" className="btn btn-sm btn-primary">
+                        Add Project
+                    </Link>
+
+                    <Link to="/projects/mine" className="btn btn-sm btn-outline">
+                        My Posted Projects
+                    </Link>
+                  
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center py-10">
+                        <span className="loading loading-ring loading-lg"></span>
+                    </div>
+                ) : apps.length === 0 ? (
+                    <p>No applications yet.</p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
                                     <th>Project</th>
-                                    <th>Student ID/Name</th>
-                                    <th>Faculty</th>
-                                    <th>Year</th>
-                                    <th>Semester</th>
+                                    <th>Type</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>Details</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
 
@@ -122,74 +169,61 @@ const SupervisorDashboard = () => {
                                 {apps.map((a) => (
                                     <tr key={a._id}>
                                         <td>
-                                            <div className="font-medium">
-                                                {a.projectTitle || "(title not available)"}
+                                            <div>
+                                                <div className="font-semibold">{a.studentName || "N/A"}</div>
+                                                <div className="text-sm opacity-70">{a.studentEmail || ""}</div>
                                             </div>
                                         </td>
 
                                         <td>
-                                            <div className="font-semibold">
-                                                {a.studentName || "No Name"}
-                                            </div>
-                                            <div className="text-sm opacity-70">
-                                                ID: {a.studentId || "-"}
-                                            </div>
+                                            <div className="font-semibold">{a.projectTitle || "N/A"}</div>
+
                                         </td>
-
-
-
-                                        <td>{a.studentFaculty || "-"}</td>
-
-                                        <td>{a.studentAcademicYear || "-"}</td>
-
-                                        <td>{a.studentCurrentSemester || "-"}</td>
-
                                         <td>
-                                            <span className={badgeClass(a.status)}>
-                                                {a.status || "pending"}
+                                            <span className="badge badge-info">
+                                                {a.type === "proposal" ? "Proposal" : "Normal Application"}
                                             </span>
                                         </td>
 
-                                        <td className="flex gap-2">
+                                        <td>
+                                            <span className="badge badge-outline">{a.status || "pending"}</span>
+                                            {a.reason && (
+                                                <div className="text-xs opacity-70 mt-1">Reason: {a.reason}</div>
+                                            )}
+                                        </td>
+
+                                        <td>
                                             <Link to={`/applications/${a._id}`} className="btn btn-xs btn-outline">
                                                 View
                                             </Link>
-                                            <div className="divider divider-horizontal">
-                                            </div>
+                                        </td>
+
+                                        <td className="flex flex-wrap gap-2">
                                             <button
                                                 className="btn btn-xs btn-success"
                                                 onClick={() => updateStatus(a._id, "accepted")}
-                                                disabled={a.status === "accepted"}
                                             >
-                                                Accept
+                                                Approve
                                             </button>
 
                                             <button
                                                 className="btn btn-xs btn-error"
                                                 onClick={() => {
-                                                    const reason = prompt("Reason for rejection:");
-                                                    if (!reason || !reason.trim()) {
-                                                        alert("Rejection reason is required.");
-                                                        return;
-                                                    }
-                                                    updateStatus(a._id, "rejected", reason);
+                                                    const reason = prompt("Reason for rejection?");
+                                                    updateStatus(a._id, "rejected", reason || "");
                                                 }}
-                                                disabled={a.status === "rejected"}
                                             >
                                                 Reject
                                             </button>
 
-
                                             <button
-                                                className="btn btn-xs"
+                                                className="btn btn-xs btn-warning"
                                                 onClick={() => updateStatus(a._id, "pending")}
-                                                disabled={a.status === "pending"}
                                             >
                                                 Pending
                                             </button>
                                         </td>
                                     </tr>
-
                                 ))}
                             </tbody>
                         </table>

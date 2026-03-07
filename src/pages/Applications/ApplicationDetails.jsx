@@ -57,8 +57,10 @@ const ApplicationDetails = () => {
 
     const isProposal = appDoc.type === "proposal";
     const d = appDoc.details || {};
-    const isOwnerStudent =
-        role === "student" && user?.uid && appDoc.studentUid === user.uid;
+    const isOwnerStudent = role === "student" && user?.uid && appDoc.studentUid === user.uid;
+
+    // ✅ strong wrapping for long strings
+    const textWrap = "whitespace-pre-wrap break-words [overflow-wrap:anywhere]";
 
     return (
         <div className="p-6 max-w-3xl mx-auto">
@@ -66,7 +68,7 @@ const ApplicationDetails = () => {
                 Back
             </button>
 
-            <div className="card bg-base-100 shadow p-6 space-y-4">
+            <div className="card bg-base-100 shadow p-6 space-y-4 rounded-2xl">
                 <div className="flex items-start justify-between gap-3">
                     <h1 className="text-3xl font-bold">{title}</h1>
 
@@ -106,14 +108,18 @@ const ApplicationDetails = () => {
                         {project.description && (
                             <div>
                                 <h3 className="font-semibold">Description</h3>
-                                <p className="mt-1 leading-relaxed">{project.description}</p>
+                                <div className="mt-2 p-4 rounded-xl bg-base-200">
+                                    <p className={`leading-relaxed ${textWrap}`}>{project.description}</p>
+                                </div>
                             </div>
                         )}
 
                         {project.shortDescription && (
                             <div>
                                 <h3 className="font-semibold">Short Description</h3>
-                                <p className="mt-1 leading-relaxed">{project.shortDescription}</p>
+                                <div className="mt-2 p-4 rounded-xl bg-base-200">
+                                    <p className={`leading-relaxed ${textWrap}`}>{project.shortDescription}</p>
+                                </div>
                             </div>
                         )}
 
@@ -131,55 +137,106 @@ const ApplicationDetails = () => {
                         )}
 
                         {(project.supervisorName || project.supervisorEmail) && (
-                            <div className="p-4 rounded bg-base-200">
+                            <div className="p-4 rounded-xl bg-base-200">
                                 <h3 className="font-semibold mb-1">Supervisor</h3>
-                                {project.supervisorName && <p>Name: {project.supervisorName}</p>}
-                                {project.supervisorEmail && <p>Email: {project.supervisorEmail}</p>}
+                                {project.supervisorName && (
+                                    <p className={textWrap}>
+                                        <span className="font-medium">Name:</span> {project.supervisorName}
+                                    </p>
+                                )}
+                                {project.supervisorEmail && (
+                                    <p className={textWrap}>
+                                        <span className="font-medium">Email:</span> {project.supervisorEmail}
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>
                 )}
 
                 {/* ========================= */}
-                {/* Proposal Details (NEW) */}
+                {/* Normal Application Answers */}
+                {/* ========================= */}
+                {!isProposal && appDoc.applicationForm && (
+                    <div className="mt-4 space-y-3">
+                        <h2 className="text-xl font-semibold">Student Application Answers</h2>
+
+                        <div className="grid grid-cols-1 gap-3">
+                            <div className="p-4 rounded-xl bg-base-200">
+                                <p className="text-sm opacity-70">Why you want to do this project?</p>
+                                <p className={`font-semibold mt-1 ${textWrap}`}>
+                                    {appDoc.applicationForm.motivation || "-"}
+                                </p>
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-base-200">
+                                <p className="text-sm opacity-70">Can you complete the project on time?</p>
+                                <p className={`font-semibold mt-1 ${textWrap}`}>
+                                    {appDoc.applicationForm.canCompleteOnTime || "-"}
+                                </p>
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-base-200">
+                                <p className="text-sm opacity-70">Can you finish the project?</p>
+                                <p className={`font-semibold mt-1 ${textWrap}`}>
+                                    {appDoc.applicationForm.canFinishProject || "-"}
+                                </p>
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-base-200">
+                                <p className="text-sm opacity-70">Plan from start to end</p>
+                                <p className={`font-semibold mt-1 ${textWrap}`}>
+                                    {appDoc.applicationForm.plan || "-"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========================= */}
+                {/* Proposal Details */}
                 {/* ========================= */}
                 {isProposal && (
                     <div className="mt-4 space-y-3">
                         <h2 className="text-xl font-semibold">Proposal Details</h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="p-4 rounded bg-base-200">
+                            <div className="p-4 rounded-xl bg-base-200">
                                 <p className="text-sm opacity-70">Category</p>
-                                <p className="font-semibold">{d.category || "-"}</p>
+                                <p className={`font-semibold ${textWrap}`}>{d.category || "-"}</p>
                             </div>
 
-                            <div className="p-4 rounded bg-base-200">
+                            <div className="p-4 rounded-xl bg-base-200">
                                 <p className="text-sm opacity-70">Department</p>
-                                <p className="font-semibold">{d.department || "-"}</p>
+                                <p className={`font-semibold ${textWrap}`}>{d.department || "-"}</p>
                             </div>
 
-                            <div className="p-4 rounded bg-base-200">
+                            <div className="p-4 rounded-xl bg-base-200">
                                 <p className="text-sm opacity-70">Methodology</p>
-                                <p className="font-semibold">{d.methodology || "-"}</p>
+                                <p className={`font-semibold ${textWrap}`}>{d.methodology || "-"}</p>
                             </div>
 
-                            <div className="p-4 rounded bg-base-200">
+                            <div className="p-4 rounded-xl bg-base-200">
                                 <p className="text-sm opacity-70">Duration</p>
-                                <p className="font-semibold">{d.duration || "-"}</p>
+                                <p className={`font-semibold ${textWrap}`}>{d.duration || "-"}</p>
                             </div>
                         </div>
 
                         {d.abstract && (
                             <div>
                                 <h3 className="font-semibold">Abstract</h3>
-                                <p className="mt-1 leading-relaxed">{d.abstract}</p>
+                                <div className="mt-2 p-4 rounded-xl bg-base-200">
+                                    <p className={`leading-relaxed ${textWrap}`}>{d.abstract}</p>
+                                </div>
                             </div>
                         )}
 
                         {d.problemStatement && (
                             <div>
                                 <h3 className="font-semibold">Problem Statement</h3>
-                                <p className="mt-1 leading-relaxed">{d.problemStatement}</p>
+                                <div className="mt-2 p-4 rounded-xl bg-base-200">
+                                    <p className={`leading-relaxed ${textWrap}`}>{d.problemStatement}</p>
+                                </div>
                             </div>
                         )}
 
@@ -201,7 +258,9 @@ const ApplicationDetails = () => {
                                 <h3 className="font-semibold">Objectives</h3>
                                 <ul className="list-disc pl-6 mt-2 space-y-1">
                                     {d.objectives.map((o, idx) => (
-                                        <li key={idx}>{o}</li>
+                                        <li key={idx} className={textWrap}>
+                                            {o}
+                                        </li>
                                     ))}
                                 </ul>
                             </div>
@@ -212,7 +271,9 @@ const ApplicationDetails = () => {
                                 <h3 className="font-semibold">Features</h3>
                                 <ul className="list-disc pl-6 mt-2 space-y-1">
                                     {d.features.map((f, idx) => (
-                                        <li key={idx}>{f}</li>
+                                        <li key={idx} className={textWrap}>
+                                            {f}
+                                        </li>
                                     ))}
                                 </ul>
                             </div>
@@ -221,7 +282,9 @@ const ApplicationDetails = () => {
                         {d.expectedOutcome && (
                             <div>
                                 <h3 className="font-semibold">Expected Outcome</h3>
-                                <p className="mt-1 leading-relaxed">{d.expectedOutcome}</p>
+                                <div className="mt-2 p-4 rounded-xl bg-base-200">
+                                    <p className={`leading-relaxed ${textWrap}`}>{d.expectedOutcome}</p>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -229,9 +292,9 @@ const ApplicationDetails = () => {
 
                 {/* Rejection reason */}
                 {appDoc.status === "rejected" && appDoc.rejectionReason && (
-                    <div className="p-4 rounded bg-base-200">
+                    <div className="p-4 rounded-xl bg-base-200">
                         <h3 className="font-semibold text-error">Rejection Reason</h3>
-                        <p className="mt-1">{appDoc.rejectionReason}</p>
+                        <p className={`mt-1 ${textWrap}`}>{appDoc.rejectionReason}</p>
                     </div>
                 )}
             </div>

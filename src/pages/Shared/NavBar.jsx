@@ -1,66 +1,222 @@
-import React, { use } from 'react';
-import { Links, NavLink } from 'react-router';
-import { AuthContext } from '../../contexts/AuthContext/AuthContext';
+import React, { use } from "react";
+import { Link, NavLink, useNavigate } from "react-router";
+import { AuthContext } from "../../contexts/AuthContext/AuthContext";
+import {
+    FiHome,
+    FiGrid,
+    FiUser,
+    FiLogOut,
+    FiLogIn,
+    FiUserPlus,
+    FiActivity,
+    FiCheckSquare,
+} from "react-icons/fi";
+
+import { IoCheckmarkDoneSharp } from "react-icons/io5";
+import { GoBrowser } from "react-icons/go";
 
 const NavBar = () => {
-    const { user, role, signOutUser } = use(AuthContext);
-    console.log("role from context:", role);
+    const { user, role, logOut } = use(AuthContext);
+    const navigate = useNavigate();
 
+    const handleLogout = () => {
+        logOut()
+            .then(() => navigate("/"))
+            .catch((err) => console.log(err));
+    };
 
-    const handleSignOut = () => {
-        signOutUser()
-            .then(() => {
-                console.log('signed out user')
-            })
-            .catch(error => {
-                console.log(error)
-            })
-    }
-    const links = <>
-        <li><NavLink to="/">Home</NavLink></li>
+    const dashboardPath =
+        role === "student"
+            ? "/dashboard/student"
+            : role === "supervisor"
+                ? "/dashboard/supervisor"
+                : role === "headSupervisor"
+                    ? "/dashboard/headSupervisor"
+                    : "/";
 
-    </>
+    const linkClass =
+        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-base-200 transition";
+
     return (
-        <div className="navbar bg-base-100 shadow-sm">
-            <div className="navbar-start">
-                <div className="dropdown">
-                    <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /> </svg>
-                    </div>
-                    <ul
-                        tabIndex={0}
-                        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                        {links}
-                    </ul>
+        <div className="sticky top-0 z-50 bg-base-100 border-b border-base-300 shadow-sm">
+            <div className="navbar container mx-auto px-4">
+
+                {/* Left - Logo */}
+                <div className="navbar-start">
+                    <Link to="/" className="text-xl font-bold tracking-wide">
+                        FYP Portal
+                    </Link>
                 </div>
-                <a className="btn btn-ghost text-xl">daisyUI</a>
-            </div>
-            <div className="navbar-center hidden lg:flex">
-                <ul className="menu menu-horizontal px-1">
-                    {links}
-                </ul>
-            </div>
-            <div className="navbar-end">
-                {
-                    user ? (
+
+                {/* Center - Links (Desktop) */}
+                <div className="navbar-center hidden lg:flex gap-2">
+                    <NavLink to="/" className={linkClass}>
+                        <FiHome /> Home
+                    </NavLink>
+
+                    {user && (
                         <>
-                            {role === "student" && (
-                                <NavLink className="btn" to="/dashboard/student">Dashboard</NavLink>
+                            <NavLink to={dashboardPath} className={linkClass}>
+                                <FiGrid /> Dashboard
+                            </NavLink>
+
+                            <NavLink to="/projects/browse" className={linkClass}>
+                                <GoBrowser /> Browse Projects
+                            </NavLink>
+
+                            <NavLink to="/activities" className={linkClass}>
+                                <FiActivity /> Activities
+                            </NavLink>
+
+                            {role === "supervisor" && (
+                                <NavLink to="/dashboard/supervisor/completed-projects" className={linkClass}>
+                                    <IoCheckmarkDoneSharp /> Completed Projects
+                                </NavLink>
+                            )}
+
+                            {user && role === "headSupervisor" && (
+                                <NavLink to="/dashboard/headSupervisor/students" className={linkClass}>
+                                    Students
+                                </NavLink>
                             )}
 
                             {role === "supervisor" && (
-                                <NavLink className="btn" to="/dashboard/supervisor">Dashboard</NavLink>
+                                <NavLink to="/dashboard/supervisor/student-progress" className={linkClass}>
+                                    Student Progress
+                                </NavLink>
                             )}
 
-                            <button onClick={handleSignOut} className="btn">Sign Out</button>
+                            {(role === "student" || role === "supervisor") && (
+                                <NavLink to="/announcements" className={linkClass}>
+                                    Announcement
+                                </NavLink>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                <div className="navbar-end gap-2">
+                    {!user ? (
+                        <>
+                            <Link to="/signIn" className="btn btn-sm btn-outline rounded-xl">
+                                <FiLogIn className="mr-1" /> Sign In
+                            </Link>
+
+                            <Link to="/register" className="btn btn-sm btn-primary rounded-xl">
+                                <FiUserPlus className="mr-1" /> Register
+                            </Link>
                         </>
                     ) : (
                         <>
-                            <NavLink className="btn" to="/register">Register</NavLink>
-                            <NavLink className="btn" to="/signIn">SignIn</NavLink>
+                            <NavLink
+                                to="/profile"
+                                className="btn btn-sm btn-ghost rounded-xl flex items-center gap-2"
+                            >
+                                <FiUser />
+                                Profile
+                            </NavLink>
+
+                            <button
+                                onClick={handleLogout}
+                                className="btn btn-sm btn-outline rounded-xl"
+                            >
+                                <FiLogOut className="mr-1" /> Logout
+                            </button>
                         </>
-                    )
-                }
+                    )}
+
+                    {/* Mobile dropdown */}
+                    <div className="dropdown dropdown-end lg:hidden">
+                        <label tabIndex={0} className="btn btn-sm btn-ghost">
+                            ☰
+                        </label>
+                        <ul
+                            tabIndex={0}
+                            className="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 border border-base-300"
+                        >
+                            <li>
+                                <Link to="/">
+                                    <FiHome className="mr-1" /> Home
+                                </Link>
+                            </li>
+
+                            {user && (
+                                <>
+                                    <li>
+                                        <Link to={dashboardPath}>
+                                            <FiGrid /> Dashboard
+                                        </Link>
+                                    </li>
+
+                                    <li>
+                                        <Link to="/projects/browse">
+                                            <GoBrowser /> Browse Projects
+                                        </Link>
+                                    </li>
+
+                                    <li>
+                                        <Link to="/activities">
+                                            <FiActivity /> Activities
+                                        </Link>
+                                    </li>
+
+
+                                    {role === "supervisor" && (
+                                        <li>
+                                            <Link to="/dashboard/supervisor/completed-projects">
+                                                <IoCheckmarkDoneSharp /> Completed Projects
+                                            </Link>
+                                        </li>
+                                    )}
+
+                                    {user && role === "headSupervisor" && (
+                                        <li>
+                                            <NavLink to="/dashboard/headSupervisor/students">
+                                                Students
+                                            </NavLink>
+                                        </li>
+                                    )}
+                                    {role === "supervisor" && (
+                                        <li>
+                                            <Link to="/dashboard/supervisor/student-progress">Student Progress</Link>
+                                        </li>
+                                    )}
+
+                                    {(role === "student" || role === "supervisor") && (
+                                        <li>
+                                            <NavLink to="/announcements">
+                                                Announcement
+                                            </NavLink>
+                                        </li>
+                                    )}
+
+                                    <li>
+                                        <Link to="/profile">
+                                            <FiUser /> Profile
+                                        </Link>
+                                    </li>
+
+                                    <li>
+                                        <button onClick={handleLogout} className="flex items-center gap-2">
+                                            <FiLogOut /> Logout
+                                        </button>
+                                    </li>
+                                </>
+                            )}
+
+                            {!user && (
+                                <>
+                                    <li>
+                                        <Link to="/signIn">Sign In</Link>
+                                    </li>
+                                    <li>
+                                        <Link to="/register">Register</Link>
+                                    </li>
+                                </>
+                            )}
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     );

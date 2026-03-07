@@ -121,6 +121,7 @@ const MyPosts = () => {
                                 >
                                     Delete
                                 </button>
+                                 
                             </div>
 
                         </div>

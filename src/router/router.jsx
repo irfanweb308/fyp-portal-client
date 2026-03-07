@@ -17,6 +17,12 @@ import SendProposal from "../pages/Applications/SendProposal";
 import ApplicationDetails from "../pages/Applications/ApplicationDetails";
 import CompletedProjects from "../pages/CompletedProjects/CompletedProjects";
 import EditProposal from "../pages/Proposals/EditProposal";
+import Activity from "../pages/Activity/Activity";
+import HeadSupervisorDashboard from "../pages/Dashboard/HeadSupervisorDashboard";
+import Students from "../pages/HeadSupervisor/Students";
+import Announcement from "../pages/Announcement/Announcement";
+import UpdateProgress from "../pages/Dashboard/UpdateProgress";
+import StudentProgress from "../pages/Dashboard/StudentProgress";
 
 
 const router = createBrowserRouter([
@@ -38,7 +44,11 @@ const router = createBrowserRouter([
       },
       {
         path: "projects/browse",
-        Component: BrowseProjects
+        element: (
+          <RoleRoute allowed={["student", "supervisor", "headSupervisor"]}>
+            <BrowseProjects />
+          </RoleRoute>
+        )
       },
       {
         path: "profile",
@@ -103,14 +113,54 @@ const router = createBrowserRouter([
         element: <RoleRoute allowed={["student"]}>
           <EditProposal />
         </RoleRoute>
+      },
+      {
+        path: "activities",
+        element: <RoleRoute allowed={["student", "supervisor"]}>
+          <Activity />
+        </RoleRoute>
+      },
+      {
+        path: "dashboard/headSupervisor",
+        element: (
+          <RoleRoute allowed={["headSupervisor"]}>
+            <HeadSupervisorDashboard />
+          </RoleRoute>
+        )
+      },
+      {
+        path: "dashboard/headSupervisor/students",
+        element: (
+          <RoleRoute allowed={["headSupervisor"]}>
+            <Students />
+          </RoleRoute>
+        )
+      },
+      {
+        path: "announcements",
+        element: (
+          <RoleRoute allowed={["student", "supervisor"]}>
+            <Announcement />
+          </RoleRoute>
+        )
+      },
+      {
+        path: "/dashboard/student/progress/:appId",
+        element: (
+          <RoleRoute allowed={["student"]}>
+            <UpdateProgress />
+          </RoleRoute>
+        ),
+      },
+      {
+        path : "/dashboard/supervisor/student-progress",
+        element : (
+          < RoleRoute allowed={["supervisor"]} >
+            <StudentProgress />
+          </RoleRoute >
+        )
+
       }
-
-
-
-
-
-
-
     ]
   },
 ]);
