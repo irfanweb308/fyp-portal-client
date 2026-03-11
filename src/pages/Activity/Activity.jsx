@@ -5,8 +5,6 @@ import {
     FiTrash2,
     FiCheck,
     FiX,
-    FiChevronRight,
-    FiChevronDown,
     FiUploadCloud,
     FiFileText,
 } from "react-icons/fi";
@@ -31,13 +29,12 @@ const Activity = () => {
     const [sectionFiles, setSectionFiles] = useState([]);
 
     const [sectionTitle, setSectionTitle] = useState("");
-    const [sectionType, setSectionType] = useState("group");
-    const [parentSectionId, setParentSectionId] = useState("");
+    const [sectionType, setSectionType] = useState("materials");
     const [creatingSection, setCreatingSection] = useState(false);
 
     const [editingSectionId, setEditingSectionId] = useState(null);
     const [editSectionTitle, setEditSectionTitle] = useState("");
-    const [editSectionType, setEditSectionType] = useState("group");
+    const [editSectionType, setEditSectionType] = useState("materials");
     const [savingSectionEdit, setSavingSectionEdit] = useState(false);
 
     // Tasks
@@ -67,9 +64,6 @@ const Activity = () => {
     const [editingId, setEditingId] = useState(null);
     const [editTitle, setEditTitle] = useState("");
     const [savingEdit, setSavingEdit] = useState(false);
-
-    // tree expand
-    const [expandedIds, setExpandedIds] = useState({});
 
     // success animation
     const [successOpen, setSuccessOpen] = useState(false);
@@ -384,7 +378,6 @@ const Activity = () => {
                 body: JSON.stringify({
                     title: sectionTitle.trim(),
                     type: sectionType,
-                    parentSectionId: parentSectionId || null,
                     supervisorUid: user?.uid || "",
                 }),
             });
@@ -396,15 +389,10 @@ const Activity = () => {
             }
 
             setSectionTitle("");
-            setSectionType("group");
-            setParentSectionId("");
+            setSectionType("materials");
 
             await loadSections(selected._id);
             alert("✅ Section created");
-
-            if (parentSectionId) {
-                setExpandedIds((prev) => ({ ...prev, [parentSectionId]: true }));
-            }
         } catch (e) {
             console.log(e);
             alert("Server error");
@@ -417,13 +405,13 @@ const Activity = () => {
         setSelectedSection(section);
         setEditingSectionId(section._id);
         setEditSectionTitle(section.title || "");
-        setEditSectionType(section.type || "group");
+        setEditSectionType(section.type || "materials");
     };
 
     const cancelSectionEdit = () => {
         setEditingSectionId(null);
         setEditSectionTitle("");
-        setEditSectionType("group");
+        setEditSectionType("materials");
     };
 
     const saveSectionEdit = async (sectionId) => {
@@ -449,7 +437,7 @@ const Activity = () => {
 
             setEditingSectionId(null);
             setEditSectionTitle("");
-            setEditSectionType("group");
+            setEditSectionType("materials");
             await loadSections(selected._id);
             alert("✅ Section updated");
         } catch (e) {
@@ -461,7 +449,7 @@ const Activity = () => {
     };
 
     const deleteSection = async (sectionId) => {
-        const ok = confirm("Delete this section/subsection?");
+        const ok = confirm("Delete this section?");
         if (!ok) return;
 
         try {
@@ -711,50 +699,10 @@ const Activity = () => {
         setDetailsUser(null);
     };
 
-    const topLevelSections = useMemo(
-        () => sections.filter((s) => !s.parentSectionId),
-        [sections]
-    );
-
-    const sectionTree = useMemo(() => {
-        const byParent = {};
-
-        for (const s of sections) {
-            const key = s.parentSectionId || "root";
-            if (!byParent[key]) byParent[key] = [];
-            byParent[key].push(s);
-        }
-
-        for (const key in byParent) {
-            byParent[key].sort((a, b) => {
-                const oa = Number(a.order || 0);
-                const ob = Number(b.order || 0);
-                if (oa !== ob) return oa - ob;
-                return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
-            });
-        }
-
-        const build = (parentId = "root") => {
-            return (byParent[parentId] || []).map((item) => ({
-                ...item,
-                children: build(String(item._id)),
-            }));
-        };
-
-        return build();
-    }, [sections]);
-
-    const toggleExpand = (sectionId) => {
-        setExpandedIds((prev) => ({
-            ...prev,
-            [sectionId]: !prev[sectionId],
-        }));
-    };
-
     const renderSectionTypeBadge = (type) => {
         if (type === "materials") return <span className="badge badge-info badge-sm">Materials</span>;
         if (type === "submission") return <span className="badge badge-success badge-sm">Submission</span>;
-        return <span className="badge badge-ghost badge-sm">Group</span>;
+        return null;
     };
 
     return (
@@ -781,8 +729,8 @@ const Activity = () => {
                                         cancelSectionEdit();
                                     }}
                                     className={`flex-1 text-left px-3 py-2 rounded-md transition ${selected?._id === a._id
-                                            ? "bg-primary text-primary-content"
-                                            : "hover:bg-base-200"
+                                        ? "bg-primary text-primary-content"
+                                        : "hover:bg-base-200"
                                         }`}
                                     title="Open activity"
                                     type="button"
@@ -830,7 +778,7 @@ const Activity = () => {
                     </div>
                 </div>
 
-                {/* MIDDLE - SECTIONS TREE */}
+                {/* MIDDLE - SECTIONS */}
                 <div className="md:col-span-4">
                     <div className="card bg-base-100 shadow p-4">
                         <div className="flex items-center justify-between mb-2">
@@ -844,35 +792,72 @@ const Activity = () => {
 
                         {!selected ? (
                             <div className="opacity-70">Select an activity first.</div>
-                        ) : sectionTree.length === 0 ? (
+                        ) : sections.length === 0 ? (
                             <div className="opacity-70">No sections yet.</div>
                         ) : (
-                            <div className="space-y-1">
-                                {sectionTree.map((node) => (
-                                    <SectionNode
-                                        key={node._id}
-                                        node={node}
-                                        level={0}
-                                        selectedSection={selectedSection}
-                                        expandedIds={expandedIds}
-                                        toggleExpand={toggleExpand}
-                                        onSelect={(section) => {
-                                            setSelectedSection(section);
-                                            if (editingSectionId && editingSectionId !== section._id) {
-                                                cancelSectionEdit();
-                                            }
-                                        }}
-                                        onEdit={startSectionEdit}
-                                        onDelete={deleteSection}
-                                        role={role}
-                                    />
-                                ))}
+                            <div className="space-y-2">
+                                {sections.map((section) => {
+                                    const isSelected = selectedSection?._id === section._id;
+
+                                    return (
+                                        <div
+                                            key={section._id}
+                                            className={`flex items-center gap-2 rounded-lg border p-2 ${isSelected ? "border-primary bg-primary/5" : "border-base-300"
+                                                }`}
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedSection(section);
+                                                    if (
+                                                        editingSectionId &&
+                                                        editingSectionId !== section._id
+                                                    ) {
+                                                        cancelSectionEdit();
+                                                    }
+                                                }}
+                                                className={`flex-1 text-left px-3 py-2 rounded ${isSelected
+                                                    ? "bg-primary text-primary-content"
+                                                    : "hover:bg-base-200"
+                                                    }`}
+                                            >
+                                                <div className="font-medium truncate">
+                                                    {section.title}
+                                                </div>
+                                                <div className="text-[11px] opacity-70">
+                                                    {section.type === "materials"
+                                                        ? "Materials"
+                                                        : "Submission"}
+                                                </div>
+                                            </button>
+
+                                            {role === "supervisor" && (
+                                                <>
+                                                    <button
+                                                        className="btn btn-xs btn-outline"
+                                                        type="button"
+                                                        onClick={() => startSectionEdit(section)}
+                                                    >
+                                                        <FiEdit2 size={13} />
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-xs btn-error"
+                                                        type="button"
+                                                        onClick={() => deleteSection(section._id)}
+                                                    >
+                                                        <FiTrash2 size={13} />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
 
                         {role === "supervisor" && selected && (
                             <form onSubmit={createSection} className="mt-4 border-t pt-4">
-                                <div className="font-semibold mb-2">Create Section / Subsection</div>
+                                <div className="font-semibold mb-2">Create Subsection</div>
 
                                 <input
                                     className="input input-bordered w-full mb-2"
@@ -886,22 +871,8 @@ const Activity = () => {
                                     value={sectionType}
                                     onChange={(e) => setSectionType(e.target.value)}
                                 >
-                                    <option value="group">Group Section</option>
                                     <option value="materials">Materials Subsection</option>
                                     <option value="submission">Submission Subsection</option>
-                                </select>
-
-                                <select
-                                    className="select select-bordered w-full mb-2"
-                                    value={parentSectionId}
-                                    onChange={(e) => setParentSectionId(e.target.value)}
-                                >
-                                    <option value="">Top Level Section</option>
-                                    {topLevelSections.map((s) => (
-                                        <option key={s._id} value={s._id}>
-                                            {s.title}
-                                        </option>
-                                    ))}
                                 </select>
 
                                 <button className="btn btn-primary btn-sm w-full" disabled={creatingSection}>
@@ -962,7 +933,7 @@ const Activity = () => {
                         {!selected ? (
                             <div className="opacity-70">Select an activity from the left.</div>
                         ) : !selectedSection ? (
-                            <div className="opacity-70">Select a section or subsection from the middle panel.</div>
+                            <div className="opacity-70">Select a subsection from the middle panel.</div>
                         ) : role === "supervisor" && editingSectionId === selectedSection._id ? (
                             <div className="border rounded-lg p-4">
                                 <div className="font-semibold mb-3">Edit Section</div>
@@ -978,7 +949,6 @@ const Activity = () => {
                                     value={editSectionType}
                                     onChange={(e) => setEditSectionType(e.target.value)}
                                 >
-                                    <option value="group">Group Section</option>
                                     <option value="materials">Materials Subsection</option>
                                     <option value="submission">Submission Subsection</option>
                                 </select>
@@ -1030,12 +1000,6 @@ const Activity = () => {
                                         </div>
                                     )}
                                 </div>
-
-                                {selectedSection.type === "group" && (
-                                    <div className="opacity-70">
-                                        This is a group section. Create or select a subsection under it.
-                                    </div>
-                                )}
 
                                 {selectedSection.type === "materials" && (
                                     <>
@@ -1402,88 +1366,6 @@ const Activity = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const SectionNode = ({
-    node,
-    level,
-    selectedSection,
-    expandedIds,
-    toggleExpand,
-    onSelect,
-    onEdit,
-    onDelete,
-    role,
-}) => {
-    const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-    const isExpanded = expandedIds[node._id] ?? true;
-    const isSelected = selectedSection?._id === node._id;
-
-    return (
-        <div>
-            <div
-                className={`flex items-center gap-1 rounded-lg border p-2 ${isSelected ? "border-primary bg-primary/5" : "border-base-300"
-                    }`}
-                style={{ marginLeft: `${level * 14}px` }}
-            >
-                <button
-                    type="button"
-                    className="btn btn-ghost btn-xs px-1"
-                    onClick={() => hasChildren && toggleExpand(node._id)}
-                    disabled={!hasChildren}
-                    title={hasChildren ? "Expand/Collapse" : ""}
-                >
-                    {hasChildren ? (isExpanded ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />) : <span className="w-3" />}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() => onSelect(node)}
-                    className={`flex-1 text-left px-2 py-1 rounded ${isSelected ? "bg-primary text-primary-content" : "hover:bg-base-200"
-                        }`}
-                >
-                    <div className="font-medium truncate">{node.title}</div>
-                    <div className="text-[11px] opacity-70">
-                        {node.type === "group"
-                            ? "Group"
-                            : node.type === "materials"
-                                ? "Materials"
-                                : "Submission"}
-                    </div>
-                </button>
-
-                {role === "supervisor" && (
-                    <>
-                        <button className="btn btn-xs btn-outline" type="button" onClick={() => onEdit(node)} title="Edit">
-                            <FiEdit2 size={13} />
-                        </button>
-                        <button className="btn btn-xs btn-error" type="button" onClick={() => onDelete(node._id)} title="Delete">
-                            <FiTrash2 size={13} />
-                        </button>
-                    </>
-                )}
-            </div>
-
-            {hasChildren && isExpanded && (
-                <div className="mt-1 space-y-1">
-                    {node.children.map((child) => (
-                        <SectionNode
-                            key={child._id}
-                            node={child}
-                            level={level + 1}
-                            selectedSection={selectedSection}
-                            expandedIds={expandedIds}
-                            toggleExpand={toggleExpand}
-                            onSelect={onSelect}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                            role={role}
-                        />
-                    ))}
                 </div>
             )}
         </div>

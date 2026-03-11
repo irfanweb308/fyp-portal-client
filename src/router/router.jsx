@@ -23,6 +23,7 @@ import Students from "../pages/HeadSupervisor/Students";
 import Announcement from "../pages/Announcement/Announcement";
 import UpdateProgress from "../pages/Dashboard/UpdateProgress";
 import StudentProgress from "../pages/Dashboard/StudentProgress";
+import CheckProgressList from "../pages/Dashboard/CheckProgressList";
 
 
 const router = createBrowserRouter([
@@ -153,13 +154,20 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path : "/dashboard/supervisor/student-progress",
-        element : (
+        path: "/dashboard/supervisor/student-progress",
+        element: (
           < RoleRoute allowed={["supervisor"]} >
             <StudentProgress />
           </RoleRoute >
         )
-
+      },
+      {
+        path: "/dashboard/headSupervisor/progress-list",
+        element: (
+          <RoleRoute allowed={["headSupervisor"]}>
+            <CheckProgressList />
+          </RoleRoute>
+        )
       }
     ]
   },

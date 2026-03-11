@@ -6,6 +6,7 @@ const StudentProgress = () => {
 
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState([]);
+    const [sendingId, setSendingId] = useState("");
 
     if (role && role !== "supervisor") {
         return (
@@ -15,39 +16,44 @@ const StudentProgress = () => {
         );
     }
 
-    useEffect(() => {
-        const loadStudentProgress = async () => {
-            if (!user?.uid) return;
+    const loadStudentProgress = async () => {
+        if (!user?.uid) return;
 
-            setLoading(true);
-            try {
-                const res = await fetch(
-                    `http://localhost:8000/supervisors/${user.uid}/student-progress`
-                );
-                const data = await res.json();
+        setLoading(true);
+        try {
+            const res = await fetch(
+                `http://localhost:8000/supervisors/${user.uid}/student-progress`
+            );
+            const data = await res.json();
 
-                if (!res.ok) {
-                    alert(data.message || "Failed to load student progress");
-                    setRows([]);
-                    return;
-                }
-
-                setRows(Array.isArray(data) ? data : []);
-            } catch (err) {
-                console.log(err);
-                alert("Server error");
+            if (!res.ok) {
+                alert(data.message || "Failed to load student progress");
                 setRows([]);
-            } finally {
-                setLoading(false);
+                return;
             }
-        };
 
+            setRows(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.log(err);
+            alert("Server error");
+            setRows([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         loadStudentProgress();
     }, [user?.uid]);
 
     const doneCount = (items) => {
         if (!Array.isArray(items)) return 0;
         return items.filter((item) => item.done).length;
+    };
+
+    const isAllDone = (items) => {
+        if (!Array.isArray(items) || items.length === 0) return false;
+        return items.every((item) => item.done);
     };
 
     const renderChecklist = (items, badgeClass = "badge badge-outline") => {
@@ -83,6 +89,39 @@ const StudentProgress = () => {
         );
     };
 
+    const sendCompletionForm = async (applicationId) => {
+        if (!user?.uid || !applicationId) return;
+
+        setSendingId(applicationId);
+        try {
+            const res = await fetch(
+                `http://localhost:8000/application-progress/${applicationId}/send-completion-form`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        supervisorUid: user.uid,
+                    }),
+                }
+            );
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || "Failed to send completion form");
+                return;
+            }
+
+            alert("Completion form sent to student successfully");
+            loadStudentProgress();
+        } catch (err) {
+            console.log(err);
+            alert("Server error");
+        } finally {
+            setSendingId("");
+        }
+    };
+
     return (
         <div className="p-6">
             <h1 className="text-3xl font-bold mb-6">Student Progress</h1>
@@ -104,8 +143,15 @@ const StudentProgress = () => {
                         const ip1 = Array.isArray(progress.ip1) ? progress.ip1 : [];
                         const ip2 = Array.isArray(progress.ip2) ? progress.ip2 : [];
 
+                        const projectCompleted = isAllDone(ip1) && isAllDone(ip2);
+                        const completionFormSent = !!progress.completionFormSent;
+                        const completionFormSubmitted = !!progress.completionFormSubmitted;
+
                         return (
-                            <div key={row.applicationId || index} className="card bg-base-100 shadow p-6">
+                            <div
+                                key={row.applicationId || index}
+                                className="card bg-base-100 shadow p-6"
+                            >
                                 <div className="mb-5">
                                     <h2 className="text-2xl font-semibold">
                                         {student.name || "Unknown Student"}
@@ -122,7 +168,9 @@ const StudentProgress = () => {
                                         </p>
                                         <p>
                                             <span className="font-semibold">Project:</span>{" "}
-                                            {application.projectTitle || progress.projectTitle || "Untitled Project"}
+                                            {application.projectTitle ||
+                                                progress.projectTitle ||
+                                                "Untitled Project"}
                                         </p>
                                         <p>
                                             <span className="font-semibold">Type:</span>{" "}
@@ -173,6 +221,42 @@ const StudentProgress = () => {
                                         <h3 className="text-xl font-semibold mb-3">IP2</h3>
                                         {renderChecklist(ip2)}
                                     </div>
+                                </div>
+
+                                <div className="mt-6 flex flex-wrap gap-3">
+                                    {!projectCompleted && (
+                                        <span className="badge badge-outline">
+                                            Waiting until all IP1 and IP2 items are completed
+                                        </span>
+                                    )}
+
+                                    {projectCompleted &&
+                                        !completionFormSent &&
+                                        !completionFormSubmitted && (
+                                            <button
+                                                className="btn btn-primary btn-sm"
+                                                onClick={() =>
+                                                    sendCompletionForm(row.applicationId)
+                                                }
+                                                disabled={sendingId === row.applicationId}
+                                            >
+                                                {sendingId === row.applicationId
+                                                    ? "Sending..."
+                                                    : "Send Completion Form to Student"}
+                                            </button>
+                                        )}
+
+                                    {completionFormSent && !completionFormSubmitted && (
+                                        <span className="badge badge-warning">
+                                            Completion form sent, waiting for student submission
+                                        </span>
+                                    )}
+
+                                    {completionFormSubmitted && (
+                                        <span className="badge badge-success">
+                                            Completion form submitted
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         );

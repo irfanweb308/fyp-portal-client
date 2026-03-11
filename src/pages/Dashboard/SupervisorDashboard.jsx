@@ -8,7 +8,7 @@ const SupervisorDashboard = () => {
     const [apps, setApps] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // ✅ NEW: My students state
+    // My students state
     const [myStudents, setMyStudents] = useState([]);
     const [loadingStudents, setLoadingStudents] = useState(true);
 
@@ -19,7 +19,6 @@ const SupervisorDashboard = () => {
         try {
             const res = await fetch(
                 `http://localhost:8000/applications?supervisorUid=${user.uid}`
-
             );
             const data = await res.json();
 
@@ -42,7 +41,7 @@ const SupervisorDashboard = () => {
         loadApplications();
     }, [user?.uid]);
 
-    // ✅ NEW: Load my students
+    // Load my students
     useEffect(() => {
         const loadMyStudents = async () => {
             try {
@@ -86,6 +85,34 @@ const SupervisorDashboard = () => {
         }
     };
 
+    const deleteApplication = async (appId) => {
+        const ok = confirm("Are you sure you want to delete this application?");
+        if (!ok) return;
+
+        try {
+            const res = await fetch(`http://localhost:8000/applications/${appId}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    supervisorUid: user?.uid || "",
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || "Failed to delete application");
+                return;
+            }
+
+            alert("Application deleted successfully");
+            loadApplications();
+        } catch (err) {
+            console.log(err);
+            alert("Server error");
+        }
+    };
+
     // Simple supervisor-only guard
     if (role && role !== "supervisor") {
         return (
@@ -99,7 +126,7 @@ const SupervisorDashboard = () => {
         <div className="p-6">
             <h1 className="text-3xl font-bold mb-6">Supervisor Dashboard</h1>
 
-            {/* ✅ NEW: My Students Section */}
+            {/* My Students Section */}
             <div className="card bg-base-100 shadow p-4 mb-6">
                 <h2 className="text-xl font-semibold mb-3">My Students</h2>
 
@@ -142,7 +169,6 @@ const SupervisorDashboard = () => {
                     <Link to="/projects/mine" className="btn btn-sm btn-outline">
                         My Posted Projects
                     </Link>
-                  
                 </div>
 
                 {loading ? (
@@ -177,8 +203,8 @@ const SupervisorDashboard = () => {
 
                                         <td>
                                             <div className="font-semibold">{a.projectTitle || "N/A"}</div>
-
                                         </td>
+
                                         <td>
                                             <span className="badge badge-info">
                                                 {a.type === "proposal" ? "Proposal" : "Normal Application"}
@@ -221,6 +247,13 @@ const SupervisorDashboard = () => {
                                                 onClick={() => updateStatus(a._id, "pending")}
                                             >
                                                 Pending
+                                            </button>
+
+                                            <button
+                                                className="btn btn-xs btn-outline btn-error"
+                                                onClick={() => deleteApplication(a._id)}
+                                            >
+                                                Delete
                                             </button>
                                         </td>
                                     </tr>
